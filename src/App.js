@@ -1,11 +1,21 @@
-import { LinkContainer } from "react-router-bootstrap";
-import React from "react";
-import { Link } from "react-router-dom";
+import { LinkContainer }        from "react-router-bootstrap";
+import { Auth }                 from "aws-amplify";
+import React, { useState }      from "react";
+import { Link, withRouter }     from "react-router-dom";
 import { Navbar, Nav, NavItem } from "react-bootstrap";
+import Routes                   from "./Routes";
 import "./App.css";
-import Routes from "./Routes";
+
 
 function App(props) {
+  const [isAuthenticated, userHasAuthenticated] = useState(false);
+
+  async function handleLogout() {
+    await Auth.signOut();
+    userHasAuthenticated(false);
+    props.history.push("/login");
+  }
+
   return (
     <div className="App container">
       <Navbar fluid collapseOnSelect>
@@ -17,18 +27,29 @@ function App(props) {
         </Navbar.Header>
         <Navbar.Collapse>
           <Nav pullRight>
-            <LinkContainer to="/signup">
-                <NavItem>Signup</NavItem>
-            </LinkContainer>
-            <LinkContainer to="/login">    
-                <NavItem>Login</NavItem>
-            </LinkContainer>    
-          </Nav>
+              {isAuthenticated ? (
+                <>
+                  <LinkContainer to="/settings">
+                    <NavItem>Settings</NavItem>
+                  </LinkContainer>
+                  <NavItem onClick={handleLogout}>Logout</NavItem>
+                </>
+              ) : (
+                <>
+                  <LinkContainer to="/signup">
+                    <NavItem>Signup</NavItem>
+                  </LinkContainer>
+                  <LinkContainer to="/login">
+                    <NavItem>Login</NavItem>
+                  </LinkContainer>
+                </>
+              )}
+            </Nav>
         </Navbar.Collapse>
       </Navbar>
-      <Routes />
+      <Routes appProps={{ isAuthenticated, userHasAuthenticated }} />
     </div>
   );
 }
 
-export default App;
+export default withRouter(App);
